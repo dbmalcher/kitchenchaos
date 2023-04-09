@@ -15,14 +15,45 @@ public class Player : MonoBehaviour
         Vector2 inputVector = gameInput.GetMovementVectorNormalized();
 
         Vector3 moveDir = new Vector3 (inputVector.x, 0f, inputVector.y);
-        transform.position +=  moveDir * moveSpeed * Time.deltaTime;
+        moveCheck(moveDir);
 
         isWalking = moveDir != Vector3.zero;
-        float rotateSpeed = 10f;
-        transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.deltaTime*rotateSpeed);
+        rotatePlayer(moveDir);
     }
 
     public bool IsWalking(){
         return isWalking;
+    }
+
+    private void moveCheck(Vector3 moveDir){
+        float moveDistance = moveSpeed * Time.deltaTime;
+
+        float playerRadius = .7f;
+        float playerHeight = 2f;
+        bool canMove = !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, playerRadius, moveDir, moveDistance);
+
+        if(canMove){
+            transform.position +=  moveDir * moveDistance;
+        }
+        else if(!canMove){
+            Vector3 moveDirX = new Vector3(moveDir.x,0,0).normalized;
+            bool canMoveX = !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, playerRadius, moveDirX, moveDistance);
+
+            if(canMoveX){
+                moveDir = moveDirX;
+            } else if(!canMoveX){
+                Vector3 moveDirZ = new Vector3(0,0,moveDir.z).normalized;
+                bool canMoveZ = !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, playerRadius, moveDirZ, moveDistance);
+
+                if(canMoveZ){
+                    moveDir = moveDirZ;
+                }
+            }
+        }
+    }
+
+    private void rotatePlayer(Vector3 moveDir){
+        float rotateSpeed = 10f;
+        transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.deltaTime*rotateSpeed);
     }
 }
