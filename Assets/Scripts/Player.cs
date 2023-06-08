@@ -9,23 +9,31 @@ public class Player : MonoBehaviour
 
     [SerializeField] private float moveSpeed = 7f;
     [SerializeField] private GameInput gameInput;
+    [SerializeField] private LayerMask countersLayerMask;
+
+    private Vector3 lastMoveDir;
 
     private void Update()
     {
+        HandleMovement();
+        HandleInteractions();
+    }
+
+    private void HandleMovement(){
         Vector2 inputVector = gameInput.GetMovementVectorNormalized();
 
         Vector3 moveDir = new Vector3 (inputVector.x, 0f, inputVector.y);
-        moveCheck(moveDir);
+        MoveCheck(moveDir);
 
         isWalking = moveDir != Vector3.zero;
-        rotatePlayer(moveDir);
+        RotatePlayer(moveDir);
     }
 
     public bool IsWalking(){
         return isWalking;
     }
 
-    private void moveCheck(Vector3 moveDir){
+    private void MoveCheck(Vector3 moveDir){
         float moveDistance = moveSpeed * Time.deltaTime;
 
         float playerRadius = .7f;
@@ -44,7 +52,6 @@ public class Player : MonoBehaviour
             } else if(!canMoveX){
                 Vector3 moveDirZ = new Vector3(0,0,moveDir.z).normalized;
                 bool canMoveZ = !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, playerRadius, moveDirZ, moveDistance);
-
                 if(canMoveZ){
                     moveDir = moveDirZ;
                 }
@@ -52,8 +59,27 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void rotatePlayer(Vector3 moveDir){
+    private void RotatePlayer(Vector3 moveDir){
         float rotateSpeed = 10f;
         transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.deltaTime*rotateSpeed);
+    }
+
+    private void HandleInteractions(){
+        Vector2 inputVector = gameInput.GetMovementVectorNormalized();
+        Vector3 moveDir = new Vector3 (inputVector.x, 0f, inputVector.y);
+        float interactDistance = 2f;
+        bool interactableObjectHit;
+
+        if(moveDir != Vector3.zero){
+            lastMoveDir = moveDir;
+        }
+
+        interactableObjectHit = Physics.Raycast(transform.position, lastMoveDir, out RaycastHit raycastHitOutput, interactDistance, countersLayerMask);
+
+        if(interactableObjectHit){
+            if(raycastHitOutput.transform.TryGetComponent(out ClearCounter clearCounter)){
+                clearCounter.Interact();
+            }
+        }
     }
 }
