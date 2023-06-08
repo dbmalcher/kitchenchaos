@@ -13,10 +13,17 @@ public class Player : MonoBehaviour
 
     private Vector3 lastMoveDir;
 
+    private void Start(){
+        gameInput.OnInteractAction += GameInput_OnInteractAction;
+    }
+
+    private void GameInput_OnInteractAction(object sender, System.EventArgs e){
+        HandleInteractions();
+    }
+
     private void Update()
     {
         HandleMovement();
-        HandleInteractions();
     }
 
     private void HandleMovement(){
