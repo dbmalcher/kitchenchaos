@@ -1,9 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class Player : MonoBehaviour
 {
+    public static Player Instance{get;private set;}
+
+    public event EventHandler<OnSelectedCounterChangeEventArgs> OnSelectedCounterChanged;
+    public class OnSelectedCounterChangeEventArgs : EventArgs{
+        public ClearCounter selectedCounter;
+    }
 
     private bool isWalking;
 
@@ -12,6 +19,14 @@ public class Player : MonoBehaviour
     [SerializeField] private LayerMask countersLayerMask;
 
     private Vector3 lastMoveDir;
+    private ClearCounter selectedCounter;
+
+    private void Awake(){
+        if(Instance != null){
+            Debug.LogError("More than one player instance");
+        }
+        Instance = this;
+    }
 
     private void Start(){
         gameInput.OnInteractAction += GameInput_OnInteractAction;
@@ -24,6 +39,7 @@ public class Player : MonoBehaviour
     private void Update()
     {
         HandleMovement();
+        HighlightCounter();
     }
 
     private void HandleMovement(){
@@ -71,7 +87,44 @@ public class Player : MonoBehaviour
         transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.deltaTime*rotateSpeed);
     }
 
-    private void HandleInteractions(){
+    private void HighlightCounter(){
+        Vector2 inputVector = gameInput.GetMovementVectorNormalized();
+        Vector3 moveDir = new Vector3 (inputVector.x, 0f, inputVector.y);
+        float interactDistance = 2f;
+        bool interactableObjectHit;
+
+        if(moveDir != Vector3.zero){
+            lastMoveDir = moveDir;
+        }
+
+        interactableObjectHit = Physics.Raycast(transform.position, lastMoveDir, out RaycastHit raycastHitOutput, interactDistance, countersLayerMask);
+
+        if(interactableObjectHit){
+            if(raycastHitOutput.transform.TryGetComponent(out ClearCounter clearCounter)){
+                if(clearCounter != selectedCounter){
+                    selectedCounter = clearCounter;
+                    SetSelectedCounter(clearCounter);
+                }
+            }
+            else{
+                selectedCounter = null;
+                SetSelectedCounter(null);
+            }
+        }
+        else{
+            selectedCounter=null;
+            SetSelectedCounter(null);
+        }
+    }
+
+    private void SetSelectedCounter(ClearCounter selectedCounter){
+        this.selectedCounter = selectedCounter;
+        OnSelectedCounterChanged?.Invoke(this, new OnSelectedCounterChangeEventArgs {
+            selectedCounter = selectedCounter
+        });
+    }
+
+    void HandleInteractions(){
         Vector2 inputVector = gameInput.GetMovementVectorNormalized();
         Vector3 moveDir = new Vector3 (inputVector.x, 0f, inputVector.y);
         float interactDistance = 2f;
