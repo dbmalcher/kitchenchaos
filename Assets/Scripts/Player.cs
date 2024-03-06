@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour, IKitchenObjectParent
 {
     public static Player Instance{get;private set;}
 
@@ -20,6 +20,9 @@ public class Player : MonoBehaviour
 
     private Vector3 lastMoveDir;
     private ClearCounter selectedCounter;
+
+    private KitchenObject kitchenObject;
+    [SerializeField]private Transform kitchenObjectHoldPoint;
 
     private void Awake(){
         if(Instance != null){
@@ -138,8 +141,28 @@ public class Player : MonoBehaviour
 
         if(interactableObjectHit){
             if(raycastHitOutput.transform.TryGetComponent(out ClearCounter clearCounter)){
-                clearCounter.Interact();
+                clearCounter.Interact(this);
             }
         }
+    }
+
+    public Transform GetKitchenObjectFollowTransform(){
+        return kitchenObjectHoldPoint;
+    }
+
+    public void SetKitchenObject(KitchenObject kitchenObject){
+        this.kitchenObject = kitchenObject;
+    }
+
+    public KitchenObject GetKitchenObject(){
+        return kitchenObject;
+    }
+
+    public void ClearKitchenObject(){
+        kitchenObject = null;
+    }
+
+    public bool HasKitchenObject(){
+        return kitchenObject != null;
     }
 }
