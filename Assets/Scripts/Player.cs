@@ -9,7 +9,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 
     public event EventHandler<OnSelectedCounterChangeEventArgs> OnSelectedCounterChanged;
     public class OnSelectedCounterChangeEventArgs : EventArgs{
-        public ClearCounter selectedCounter;
+        public BaseCounter selectedCounter;
     }
 
     private bool isWalking;
@@ -19,7 +19,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     [SerializeField] private LayerMask countersLayerMask;
 
     private Vector3 lastMoveDir;
-    private ClearCounter selectedCounter;
+    private BaseCounter selectedCounter;
 
     private KitchenObject kitchenObject;
     [SerializeField]private Transform kitchenObjectHoldPoint;
@@ -103,10 +103,10 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         interactableObjectHit = Physics.Raycast(transform.position, lastMoveDir, out RaycastHit raycastHitOutput, interactDistance, countersLayerMask);
 
         if(interactableObjectHit){
-            if(raycastHitOutput.transform.TryGetComponent(out ClearCounter clearCounter)){
-                if(clearCounter != selectedCounter){
-                    selectedCounter = clearCounter;
-                    SetSelectedCounter(clearCounter);
+            if(raycastHitOutput.transform.TryGetComponent(out BaseCounter baseCounter)){
+                if(baseCounter != selectedCounter){
+                    selectedCounter = baseCounter;
+                    SetSelectedCounter(baseCounter);
                 }
             }
             else{
@@ -120,7 +120,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         }
     }
 
-    private void SetSelectedCounter(ClearCounter selectedCounter){
+    private void SetSelectedCounter(BaseCounter selectedCounter){
         this.selectedCounter = selectedCounter;
         OnSelectedCounterChanged?.Invoke(this, new OnSelectedCounterChangeEventArgs {
             selectedCounter = selectedCounter
@@ -140,8 +140,8 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         interactableObjectHit = Physics.Raycast(transform.position, lastMoveDir, out RaycastHit raycastHitOutput, interactDistance, countersLayerMask);
 
         if(interactableObjectHit){
-            if(raycastHitOutput.transform.TryGetComponent(out ClearCounter clearCounter)){
-                clearCounter.Interact(this);
+            if(raycastHitOutput.transform.TryGetComponent(out BaseCounter baseCounter)){
+                baseCounter.Interact(this);
             }
         }
     }
