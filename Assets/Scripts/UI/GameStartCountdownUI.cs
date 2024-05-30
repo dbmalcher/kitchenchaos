@@ -6,6 +6,13 @@ using TMPro;
 public class GameStartCountdownUI : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI countdownText;
+    [SerializeField]private Animator animator;
+    private int previousCountdownNumber;
+
+    void Awake()
+    {
+        animator = GetComponent<Animator>();
+    }
 
     void Start()
     {
@@ -24,7 +31,14 @@ public class GameStartCountdownUI : MonoBehaviour
 
     void Update()
     {
-        countdownText.text = KitchenGameManager.Instance.GetCountdownToStartTimer().ToString("F0");
+        int countDownNumber = Mathf.CeilToInt(KitchenGameManager.Instance.GetCountdownToStartTimer());
+        countdownText.text = countDownNumber.ToString();
+
+        if(previousCountdownNumber != countDownNumber){
+            previousCountdownNumber = countDownNumber;
+            animator.SetTrigger("numberPopup");
+            SoundManager.Instance.PlayCountdownSound();
+        }
     }
 
     void Show(){
